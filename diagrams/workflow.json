@@ -1,0 +1,43 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Matching Engine Pipeline",
+    "quality_profile": "showcase",
+    "output": "workflow.html",
+    "views": [
+      { "id": "happy-path", "label": "Filter to explanation", "focus": ["submit", "hardfilters", "scoreall", "misery", "top5", "groq", "respond"], "note": "The main path from a submitted session to a 200 OK with explanations." },
+      { "id": "misery-loop", "label": "Misery threshold retry", "focus": ["misery", "retrylower"], "note": "If too few titles clear the bar, the same scored pool is retried at a lower threshold instead of re-scoring." }
+    ]
+  },
+  "lanes": [
+    { "id": "request", "label": "Request" },
+    { "id": "filter", "label": "SQL Hard Filters" },
+    { "id": "scoring", "label": "Application Scoring (Java)" },
+    { "id": "respond", "label": "Explain & Respond" }
+  ],
+  "groups": [
+    { "id": "showmore", "label": "POST /sessions/{id}/more repeats this, excluding already-returned titles", "lane": "respond", "fromCol": 4, "toCol": 5, "variant": "dashed" }
+  ],
+  "mainPath": ["submit", "hardfilters", "scoreall", "misery", "top5", "groq", "respond"],
+  "nodes": [
+    { "id": "submit", "lane": "request", "col": 0, "type": "backend", "label": "Submit Request", "sublabel": "POST /sessions/{id}/submit", "width": 132 },
+    { "id": "hardfilters", "lane": "filter", "col": 1, "type": "backend", "label": "Hard Filters", "sublabel": "4 SQL WHERE clauses", "width": 132 },
+    { "id": "scoreall", "lane": "scoring", "col": 2, "type": "backend", "label": "Score Per Person", "sublabel": "5 weighted factors", "width": 132 },
+    { "id": "misery", "lane": "scoring", "col": 3, "type": "backend", "label": "Misery Threshold", "sublabel": "keep score ≥ 40", "width": 132 },
+    { "id": "retrylower", "lane": "filter", "col": 3, "type": "backend", "label": "Retry Lower", "sublabel": "40 → 30 → 20", "width": 132 },
+    { "id": "top5", "lane": "scoring", "col": 4, "type": "backend", "label": "Rank Top 5", "sublabel": "of whatever survives", "width": 132 },
+    { "id": "groq", "lane": "respond", "col": 4, "type": "external", "label": "Groq", "sublabel": "1 prompt/title, concurrent", "width": 132 },
+    { "id": "respond", "lane": "respond", "col": 5, "type": "backend", "label": "200 OK", "sublabel": "top 5 + explanations", "width": 132 }
+  ],
+  "edges": [
+    { "id": "submit-filter", "from": "submit", "to": "hardfilters", "variant": "default" },
+    { "id": "filter-score", "from": "hardfilters", "to": "scoreall", "label": "candidate titles", "variant": "emphasis" },
+    { "id": "score-misery", "from": "scoreall", "to": "misery", "label": "score breakdown", "variant": "default" },
+    { "id": "misery-retry", "from": "misery", "to": "retrylower", "label": "fewer than 5 survive", "variant": "dashed", "role": "branch" },
+    { "id": "retry-recheck", "from": "retrylower", "to": "misery", "label": "recheck at lower bar", "variant": "dashed", "role": "branch" },
+    { "id": "misery-top5", "from": "misery", "to": "top5", "label": "survivors", "variant": "emphasis" },
+    { "id": "top5-groq", "from": "top5", "to": "groq", "label": "top 5 titles", "variant": "emphasis" },
+    { "id": "groq-respond", "from": "groq", "to": "respond", "label": "explanations awaited together", "variant": "emphasis" }
+  ]
+}

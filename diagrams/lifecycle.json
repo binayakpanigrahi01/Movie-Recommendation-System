@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "Movie-Night Session Lifecycle",
+    "output": "lifecycle.html",
+    "viewBox": [1000, 566],
+    "quality_profile": "showcase"
+  },
+  "lanes": [
+    { "id": "main", "label": "Session" }
+  ],
+  "states": [
+    { "id": "started", "type": "start", "label": "Started", "lane": "main", "col": 0 },
+    { "id": "collecting", "type": "waiting", "label": "Collecting Forms", "lane": "main", "col": 1 },
+    { "id": "matching", "type": "active", "label": "Matching", "lane": "main", "col": 2 },
+    { "id": "results_ready", "type": "success", "label": "Results Ready", "lane": "main", "col": 3 },
+    { "id": "tmdb_down", "type": "failure", "label": "TMDB Unreachable", "lane": "main", "col": 1, "yOffset": 110 },
+    { "id": "groq_down", "type": "neutral", "label": "Groq Unreachable", "lane": "main", "col": 2, "yOffset": 110 }
+  ],
+  "transitions": [
+    { "from": "started", "to": "collecting", "route": "straight" },
+    { "from": "collecting", "to": "matching", "route": "straight" },
+    { "from": "matching", "to": "tmdb_down", "label": "TMDB unreachable", "variant": "security", "labelDx": -50 },
+    { "from": "matching", "to": "groq_down", "label": "Groq unreachable", "variant": "dashed", "labelDy": 24 },
+    { "from": "matching", "to": "results_ready", "label": "survivors ≥ 5", "route": "straight", "labelDy": 58, "labelDx": 60 },
+    { "from": "groq_down", "to": "results_ready", "label": "generic reason shown", "variant": "dashed", "labelDy": 22 }
+  ]
+}

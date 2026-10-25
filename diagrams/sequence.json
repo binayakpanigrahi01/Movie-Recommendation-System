@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Session Submit — One Round Trip",
+    "output": "sequence.html",
+    "viewBox": [1040, 550],
+    "column_fit": "spread",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "session-start", "label": "Session start", "focus": ["user", "api"], "note": "The host starts a session; the per-person forms that follow are held in frontend state only, never sent yet." },
+      { "id": "match-and-explain", "label": "Match and explain", "focus": ["api", "db", "groq"], "note": "One request does the whole match: hard filters, scoring, misery threshold, then Groq explanations awaited together." },
+      { "id": "show-more", "label": "Show more (opt-in)", "focus": ["user", "api", "groq"], "note": "A deliberate second round trip — ranks 6 to 10 are never computed unless the group actually asks." }
+    ]
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "Group", "sublabel": "browser tab" },
+    { "id": "api", "type": "backend", "label": "Spring Boot", "sublabel": "REST API" },
+    { "id": "db", "type": "database", "label": "MySQL", "sublabel": "titles cache" },
+    { "id": "groq", "type": "external", "label": "Groq", "sublabel": "LLM" }
+  ],
+  "segments": [
+    { "from": 150, "to": 212, "label": "Session start" },
+    { "from": 238, "to": 380, "label": "Submit → match → explain" },
+    { "from": 386, "to": 460, "label": "Show more (second round trip)" }
+  ],
+  "messages": [
+    { "id": "start-session", "from": "user", "to": "api", "y": 170, "label": "POST /sessions/start (S1–S4)", "variant": "emphasis" },
+    { "id": "session-id", "from": "api", "to": "user", "y": 198, "label": "sessionId", "variant": "return", "note": "Handoff loop: one form per person, held client-side only" },
+    { "id": "submit", "from": "user", "to": "api", "y": 226, "label": "POST /sessions/{id}/submit (all Q1–Q8)", "variant": "emphasis" },
+    { "id": "match-query", "from": "api", "to": "db", "y": 254, "label": "SELECT titles WHERE hard filters", "note": "Falls back to TMDB + upserts the cache only when the cache is thin for this filter set" },
+    { "id": "match-rows", "from": "db", "to": "api", "y": 282, "label": "candidates", "variant": "return" },
+    { "id": "groq-prompts", "from": "api", "to": "groq", "y": 310, "label": "1 prompt per top-5 title, concurrent", "variant": "emphasis", "note": "Score per person, apply misery threshold (40 → 30 → 20), rank — plain Java, not SQL" },
+    { "id": "groq-replies", "from": "groq", "to": "api", "y": 338, "label": "5 explanations, awaited together", "variant": "return" },
+    { "id": "submit-response", "from": "api", "to": "user", "y": 366, "label": "200 OK — top 5 + explanations", "variant": "return", "note": "session_results rank 1–5 inserted before responding" },
+    { "id": "more-click", "from": "user", "to": "api", "y": 394, "label": "POST /sessions/{id}/more", "variant": "emphasis" },
+    { "id": "more-round", "from": "api", "to": "groq", "y": 422, "label": "re-run filters + score, 1 prompt per next-5 title", "note": "Same pipeline as submit, excluding the 5 titles already returned" },
+    { "id": "more-response", "from": "api", "to": "user", "y": 450, "label": "200 OK — next 5, same shape", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "api", "from": 165, "to": 202, "type": "backend" },
+    { "participant": "api", "from": 221, "to": 372, "type": "backend" },
+    { "participant": "api", "from": 389, "to": 456, "type": "backend" },
+    { "participant": "db", "from": 249, "to": 287, "type": "database" },
+    { "participant": "groq", "from": 305, "to": 343, "type": "external" },
+    { "participant": "groq", "from": 417, "to": 427, "type": "external" }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Movie Recommender — System Architecture",
+    "output": "architecture.html",
+    "quality_profile": "showcase",
+    "views": [
+      { "id": "core-request", "label": "Core request path", "focus": ["user", "frontend", "api", "db"], "note": "The browser only ever talks to the backend; the backend is the one place that holds a JWT and a DB connection." },
+      { "id": "external-integrations", "label": "External integrations", "focus": ["api", "tmdb", "omdb", "groq", "brevo"], "note": "Every third-party call is proxied through the backend so API keys never reach the browser." }
+    ]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "Host + Group", "sublabel": "one shared device", "pos": [40, 300], "size": [130, 60] },
+    { "id": "frontend", "type": "frontend", "label": "React App", "sublabel": "Vite :5173", "pos": [250, 300], "size": [130, 60] },
+    { "id": "api", "type": "backend", "label": "Spring Boot API", "sublabel": ":8080", "pos": [470, 300], "size": [140, 64], "tag": "holds all API keys" },
+    { "id": "db", "type": "database", "label": "MySQL", "sublabel": "titles, sessions, results", "pos": [470, 440], "size": [140, 60] },
+    { "id": "tmdb", "type": "external", "label": "TMDB API", "sublabel": "movie/TV metadata", "pos": [900, 150], "size": [130, 60] },
+    { "id": "omdb", "type": "external", "label": "OMDb API", "sublabel": "extra ratings", "pos": [900, 240], "size": [130, 60] },
+    { "id": "groq", "type": "external", "label": "Groq API", "sublabel": "AI explanations", "pos": [900, 330], "size": [130, 60] },
+    { "id": "brevo", "type": "external", "label": "Brevo SMTP", "sublabel": "password reset email", "pos": [900, 420], "size": [130, 60] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Server (owns all secrets)", "wraps": ["api", "db"] }
+  ],
+  "connections": [
+    { "id": "user-frontend", "from": "user", "to": "frontend", "label": "HTTPS", "variant": "emphasis" },
+    { "id": "frontend-api", "from": "frontend", "to": "api", "label": "JSON + JWT Bearer", "variant": "emphasis" },
+    { "id": "api-db", "from": "api", "to": "db", "label": "JDBC", "labelDy": 24 },
+    { "id": "api-tmdb", "from": "api", "to": "tmdb" },
+    { "id": "api-omdb", "from": "api", "to": "omdb" },
+    { "id": "api-groq", "from": "api", "to": "groq" },
+    { "id": "api-brevo", "from": "api", "to": "brevo", "variant": "dashed" }
+  ]
+}

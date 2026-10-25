@@ -1,0 +1,25 @@
+# Copy this file to application-local.properties and update with your actual credentials.
+# application-local.properties is gitignored to keep secrets safe.
+
+# Database Credentials
+DB_URL=jdbc:mysql://localhost:3306/movie_recommender?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+DB_USERNAME=root
+DB_PASSWORD=your_mysql_password_here
+
+# JWT Secret (minimum 256 bits / 32 bytes hex or base64)
+JWT_SECRET=404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+
+# TMDB API Key (From https://www.themoviedb.org/settings/api)
+TMDB_API_KEY=your_tmdb_api_key_here
+
+# OMDb API Key (Optional, from http://www.omdbapi.com/apikey.aspx)
+OMDB_API_KEY=
+
+# Groq API Key (From https://console.groq.com/keys)
+GROQ_API_KEY=your_groq_api_key_here
+
+# Brevo SMTP Credentials for Password Reset Emails (Optional - fallback to console log if blank)
+BREVO_SMTP_HOST=smtp-relay.brevo.com
+BREVO_SMTP_PORT=587
+BREVO_SMTP_USERNAME=
+BREVO_SMTP_PASSWORD=
